@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -29,5 +31,40 @@ class DemoControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    // add your test cases here
+
+    @ParameterizedTest(name = "Input: \"{0}\" → Expected: \"{1}\"")
+    @CsvSource({
+            "eloquent, loquen",
+            "country, ountr",
+            "person, erso",
+            "xyz, y",
+            "'123%qwerty+', '23%qwerty'"
+    })
+    void testValidStrings(String input, String expected) throws Exception {
+        mockMvc.perform(get("/remove").param("original", input))
+                .andExpect(status().isOk())
+                .andExpect(content().string(expected));
+    }
+
+    @Test
+    void testExactlyTwo() throws Exception {
+        mockMvc.perform(get("/remove").param("original", "ab"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @ParameterizedTest(name = "Invalid input: \"{0}\"")
+    @ValueSource(strings = {"", "a"})
+    void testInvalidStrings(String input) throws Exception {
+        mockMvc.perform(get("/remove").param("original", input))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testMissingParameter() throws Exception {
+        mockMvc.perform(get("/remove"))
+                .andExpect(status().isBadRequest());
+    }
+
+
 }
